@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -42,6 +43,10 @@ class TaskUpdate(BaseModel):
     def require_a_change(self) -> "TaskUpdate":
         if not self.model_fields_set:
             raise ValueError("at least one field must be supplied")
+        if "title" in self.model_fields_set and self.title is None:
+            raise ValueError("title cannot be null")
+        if "status" in self.model_fields_set and self.status is None:
+            raise ValueError("status cannot be null")
         return self
 
 
@@ -52,5 +57,5 @@ class TaskRead(BaseModel):
     title: str
     description: str | None
     status: TaskStatus
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
