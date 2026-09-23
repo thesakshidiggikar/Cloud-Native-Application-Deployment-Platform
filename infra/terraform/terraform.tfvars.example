@@ -1,0 +1,13 @@
+﻿# AWS values go in this ignored file only. Fill region and trusted operator CIDRs.
+aws_region = "CHANGE_ME"
+cluster_admin_cidrs = ["CHANGE_ME/32"]
+environment = "dev"
+single_nat_gateway = true
+node_instance_types = ["t3.medium"]
+node_min_size = 2
+node_max_size = 4
+node_desired_size = 2
+database_instance_class = "db.t4g.micro"
+database_multi_az = false
+cache_node_type = "cache.t4g.micro"
+cache_nodes = 1

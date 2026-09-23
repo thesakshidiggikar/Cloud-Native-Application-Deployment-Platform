@@ -1,0 +1,5 @@
+﻿# Remote state bootstrap config. Keep the real backend.hcl ignored.
+# bucket = "CHANGE_ME"
+# key = "devopshere/terraform.tfstate"
+# region = "CHANGE_ME"
+# encrypt = true
