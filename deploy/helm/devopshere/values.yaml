@@ -1,0 +1,69 @@
+﻿# Values are safe defaults. The image tag must be set to a published immutable release before sync.
+replicaCount: 2
+image:
+  repository: public.ecr.aws/example/devopshere-api
+  tag: "CHANGE_ME"
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+serviceAccount:
+  create: true
+  automount: false
+  annotations: {}
+  name: ""
+podAnnotations: {}
+podLabels: {}
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+service:
+  type: ClusterIP
+  port: 8000
+ingress:
+  enabled: false
+  className: alb
+  annotations: {}
+  host: CHANGE_ME
+  path: /
+  certificateArn: CHANGE_ME
+  scheme: internet-facing
+  healthcheckPath: /health/ready
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+runtimeSecretName: devopshere-runtime
+config:
+  APP_NAME: Devopshere API
+  APP_ENVIRONMENT: production
+  APP_LOG_LEVEL: INFO
+  APP_CACHE_TTL_SECONDS: "30"
+  APP_VERSION: "0.1.0"
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+nodeSelector: {}
+tolerations: []
+affinity: {}
+externalSecret:
+  enabled: false
+  secretStoreName: devopshere-aws-secrets
+  remoteKey: CHANGE_ME

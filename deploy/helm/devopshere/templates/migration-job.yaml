@@ -1,0 +1,38 @@
+﻿apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "devopshere.fullname" . }}-migrate-{{ .Release.Revision }}
+  labels:
+    {{- include "devopshere.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 300
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "devopshere.name" . }}-migrate
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ .Values.serviceAccount.name | default (include "devopshere.fullname" .) }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: migrate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["alembic", "upgrade", "head"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "devopshere.fullname" . }}-config
+          env:
+            - name: APP_DATABASE_URL
+              valueFrom:
+                secretKeyRef: {name: {{ .Values.runtimeSecretName }}, key: APP_DATABASE_URL}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}

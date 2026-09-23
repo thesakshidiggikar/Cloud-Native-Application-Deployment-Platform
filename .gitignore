@@ -90,3 +90,22 @@ Desktop.ini
 # Local container overrides
 docker-compose.override.yml
 docker-compose.override.yaml
+# Local-only backend settings. Real Terraform inputs/state remain ignored.
+backend.hcl
+terraform.tfvars
+*.tfvars
+*.tfvars.json
+*.tfplan
+terraform.tfplan
+.terraform/
+
+# Local app runtime and sensitive/exported data
+secrets/
+.secrets/
+data/private/
+**/secret*.yml
+**/secret*.yaml
+!**/secret*.example.yml
+!**/secret*.example.yaml
+*.csv
+*.parquet
