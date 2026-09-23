@@ -1,9 +1,9 @@
 from logging.config import fileConfig
-import os
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+from devopshere_api.config import get_settings
 from devopshere_api.models import Base
 
 config = context.config
@@ -11,10 +11,11 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
-database_url = os.environ.get("APP_DATABASE_URL")
-if not database_url:
+settings = get_settings()
+if settings.database_url is None:
     raise RuntimeError("APP_DATABASE_URL is required to run database migrations")
-config.set_main_option("sqlalchemy.url", database_url)
+database_url = settings.database_url.get_secret_value()
+config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
 
 
 def run_migrations_offline() -> None:
