@@ -5,7 +5,16 @@ from datetime import UTC, datetime
 
 
 class JsonFormatter(logging.Formatter):
-    """Serialize standard log records as one JSON object per line."""
+    """Serialize standard log records and approved context fields as JSON."""
+
+    safe_context_fields = (
+        "environment",
+        "request_id",
+        "method",
+        "path",
+        "status_code",
+        "duration_ms",
+    )
 
     def format(self, record: logging.LogRecord) -> str:
         payload = {
@@ -14,6 +23,10 @@ class JsonFormatter(logging.Formatter):
             "logger": record.name,
             "message": record.getMessage(),
         }
+        for field in self.safe_context_fields:
+            value = getattr(record, field, None)
+            if value is not None:
+                payload[field] = value
         return json.dumps(payload, separators=(",", ":"))
 
 
