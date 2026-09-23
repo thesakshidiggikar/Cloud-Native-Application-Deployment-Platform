@@ -9,16 +9,31 @@ A learning-lab task API built to exercise application delivery and operations. P
 - migrations/: Alembic schema migrations.
 - requirements.txt: pinned runtime dependencies.
 - requirements-dev.txt: pinned test dependencies.
-- docker-compose.yml: local PostgreSQL and Redis, bound to loopback only.
-- .env.example: fake local-only values; copy to ignored .env before running local services.
+- docker-compose.yml: local API, PostgreSQL, and Redis services; ports bind to loopback.
+- .env.example: fake local-only values; copy it to ignored .env before starting Compose.
 
-## Start local dependencies
+## Run the full container stack
 
 From this directory:
 
 ~~~powershell
 Copy-Item .env.example .env
-docker compose up -d
+docker compose up --build -d
+docker compose ps
+Invoke-RestMethod http://127.0.0.1:8000/health/live
+Invoke-RestMethod http://127.0.0.1:8000/health/ready
+~~~
+
+Open http://127.0.0.1:8000/docs for API documentation. The Compose migration job waits for PostgreSQL and creates the schema before the API starts. PostgreSQL must be healthy for readiness. Redis is optional for readiness because task reads fall back to PostgreSQL when Redis is unavailable.
+
+To inspect service output, run docker compose logs --follow api. To stop services while preserving the local database, run docker compose down. To delete the disposable local database volume too, run docker compose down -v.
+
+## Run tests and the API directly from Python
+
+This mode is useful for a reload-on-save loop. Do not start the Compose api service at the same time because both modes use port 8000.
+
+~~~powershell
+docker compose up -d postgres redis
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
@@ -28,9 +43,7 @@ pytest
 uvicorn devopshere_api.main:app --app-dir src --reload
 ~~~
 
-The app runs at localhost:8000. Open /docs for API documentation. Check /health/live and /health/ready. PostgreSQL must be healthy for readiness. Redis is optional for readiness because task reads fall back to PostgreSQL if Redis is unavailable.
-
-To stop the local services while keeping database data, run docker compose down. To discard the local database volume as well, run docker compose down -v. The volume contains local test data.
+The unit tests use temporary SQLite and a fake Redis; they do not require Docker or AWS. The Alembic command uses the local APP_DATABASE_URL in .env and applies the production migration to the local PostgreSQL container.
 
 ## API
 
@@ -46,4 +59,4 @@ Valid statuses are open, in_progress, and done. Titles are trimmed, required, an
 
 ## Local configuration and secrets
 
-The tracked .env.example is a deliberately fake local template. The real local .env is ignored. Never place AWS credentials, real database credentials, private endpoints, customer data, or production URLs in tracked files. Provide production configuration through runtime secret injection after the AWS secret-store design is deployed. Local Compose defaults must never be reused in a deployed environment.
+The tracked .env.example contains deliberately fake local values. The real .env is ignored. Never place AWS credentials, real database credentials, private endpoints, customer data, or production URLs in tracked files. Production configuration will come from runtime secret injection. Local Compose values must never be reused in a deployed environment.
