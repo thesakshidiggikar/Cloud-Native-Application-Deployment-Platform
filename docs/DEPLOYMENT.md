@@ -31,7 +31,11 @@ Create an ExternalSecret in the target namespace mapping those properties to Kub
 
 ## 4. ECR publishing with GitHub OIDC
 
-Create an IAM role whose trust policy requires `aud=sts.amazonaws.com` and restricts `sub` to this repository and `ref:refs/tags/v*`. Grant only ECR authorization-token permission and push/upload actions scoped to this ECR repository. Set GitHub repository variables `AWS_ROLE_TO_ASSUME`, `AWS_REGION`, and `ECR_REPOSITORY`. Do not set AWS access-key secrets. Push a semantic release tag, then verify the immutable tag and digest in ECR.
+Terraform creates the repository-scoped publishing role and output `github_actions_role_arn`. Its trust policy requires `aud=sts.amazonaws.com` and restricts `sub` to this repository's semantic version tags (`v*.*.*`). The role can push only to this project's ECR repository; the ECR authorization-token action is the only account-wide permission.
+
+IAM OIDC providers are account-level. If your AWS account already has the GitHub provider, set `github_oidc_provider_arn` in the ignored `terraform.tfvars`; otherwise Terraform creates it. If provider creation reports that the URL already exists, use the existing provider ARN and plan again. Do not delete a provider shared by other roles.
+
+Set GitHub repository variables `AWS_ROLE_TO_ASSUME` (Terraform output `github_actions_role_arn`), `AWS_REGION`, and `ECR_REPOSITORY` (the final path segment from `ecr_repository_url`). Do not set AWS access-key secrets. Push a semantic release tag, then verify the immutable tag and digest in ECR.
 
 ## 5. GitOps rollout
 

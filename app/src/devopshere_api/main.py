@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from redis import Redis
 from redis.exceptions import RedisError
 from sqlalchemy import Engine
+from sqlalchemy.exc import SQLAlchemyError
 
 from devopshere_api.config import Settings, get_settings
 from devopshere_api.database import build_engine, build_session_factory, database_is_healthy
@@ -61,6 +62,23 @@ def create_app(
     application.state.session_factory = build_session_factory(engine) if engine is not None else None
     application.state.cache = cache
     application.include_router(task_router)
+
+    @application.exception_handler(SQLAlchemyError)
+    async def database_error_handler(request, exc: SQLAlchemyError):
+        """Return a stable, sanitized response when a database operation fails."""
+        logger.error(
+            "database_request_failed",
+            extra={
+                "path": request.url.path,
+                "method": request.method,
+                "error_type": type(exc).__name__,
+            },
+        )
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "database temporarily unavailable"},
+            headers={"Retry-After": "1"},
+        )
 
     @application.middleware("http")
     async def request_logging(request, call_next):
