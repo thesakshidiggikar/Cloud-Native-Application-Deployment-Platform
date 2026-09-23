@@ -5,15 +5,13 @@
 !.env.*.example
 *.local
 config.local.*
-secrets/
-private/
 .local/
 
-# Credentials, tokens, certificates, and private keys
-*credential*
-*credentials*
-*secret*
-*token*
+# Local credential material and private keys
+credentials.json
+credentials.local.*
+*.secret
+*.secret.*
 *.pem
 *.key
 *.p12
@@ -21,10 +19,6 @@ private/
 *.crt
 *.cer
 *.der
-*.pub
-id_rsa
-id_ed25519
-known_hosts
 .aws/
 .azure/
 .gcloud/
@@ -60,7 +54,6 @@ temp/
 *.tmp
 *.bak
 *.dump
-*.sql
 *.sqlite
 *.sqlite3
 *.db
